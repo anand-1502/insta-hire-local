@@ -52,29 +52,6 @@ Everything runs locally with SQLite + ChromaDB, so it’s lightweight and easy t
 
 ---
 
-## 📂 Project Structure
-insta-hire-local/
-│
-├── app.py # Streamlit entrypoint
-├── pages/ # Multi-page Streamlit views
-│ ├── 01_Candidate_Upload.py
-│ ├── 02_Employer_Search.py
-│ └── 03_Candidate_Dashboard.py
-├── src/ # Core logic
-│ ├── db.py # SQLite wrapper
-│ ├── embeddings.py # ChromaDB embedding manager
-│ ├── match.py # Filtering and ranking
-│ ├── pdf_utils.py # PDF text extraction
-│ └── settings.py # Config paths
-├── data/ # Local data storage
-│ ├── chroma/ # Vector DB
-│ ├── resumes/ # Uploaded resumes
-│ └── app.db # SQLite DB
-├── requirements.txt # Python dependencies
-├── runtime.txt # Python version pin
-├── README.md # Project documentation
-└── pic1.png … pic4.png # Screenshots for README
-
 Notes
 
 Resumes are stored locally in /data/resumes.
@@ -84,6 +61,7 @@ Embeddings are stored in /data/chroma.
 The database is /data/app.db.
 
 You can reset everything by deleting data/ and re-running uploads.
+
 
 
 
