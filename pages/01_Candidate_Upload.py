@@ -52,10 +52,7 @@ if submitted:
         st.warning("Could not extract text from this PDF. The file might be scanned or image based.")
         # Still proceed, but embedding quality will be low
 
-    # Create embedding and add to FAISS
-    emb_id = index.add_text(resume_text)
-
-    # Save to DB
+    # Save candidate in DB first (to get cand_id)
     cand_id = db.add_candidate(
         name=name,
         email=email,
@@ -66,9 +63,15 @@ if submitted:
         pay_max=float(pay_max),
         availability=json.dumps({"days": days, "times": times}),
         resume_path=str(pdf_path),
-        embedding_id=emb_id,
-        resume_excerpt=resume_text[:1200]  # store a short preview to display
+        embedding_id=None,  # will be updated after embedding
+        resume_excerpt=resume_text[:1200]
     )
+
+    # Create embedding and add to Chroma using cand_id as the vector ID
+    index.add_text(resume_text, candidate_id=cand_id)
+
+    # Update embedding_id in DB to cand_id (kept same for consistency)
+    db.update_candidate_embedding(cand_id, embedding_id=cand_id)
 
     st.success(f"Saved {name} with candidate id {cand_id}.")
     st.info("Your resume is now searchable by employers.")

@@ -13,14 +13,17 @@ db = DB()
 index = EmbeddingIndex()
 
 with st.form("search_form"):
-    job_text = st.text_area("Job requirement", placeholder="e.g., Waiter with 2+ years, POS experience, evenings and weekends")
+    job_text = st.text_area(
+        "Job requirement",
+        placeholder="e.g., Waiter with 2+ years, POS experience, evenings and weekends"
+    )
     col1, col2, col3 = st.columns(3)
     with col1:
         city = st.text_input("City", value="")
     with col2:
         state = st.text_input("State or region", value="")
     with col3:
-        radius_note = st.text_input("Distance filter (simple city match for local version)", value="same city")
+        st.text_input("Distance filter (local version)", value="same city", disabled=True)
 
     st.markdown("**Required availability**")
     req_days = st.multiselect("Days needed", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
@@ -40,12 +43,16 @@ if submitted:
         st.error("Please enter a job requirement.")
         st.stop()
 
-    # Embed query and search FAISS
-    ids, scores = index.search(job_text, k=top_k)
-    # Fetch matched candidates
-    records = db.get_candidates_by_embedding_ids(ids)
+    # Embed query and search Chroma
+    ids, scores = index.search(job_text, k=top_k)   # ids are strings now
+    if not ids:
+        st.warning("No candidates found in the vector store yet. Upload some resumes first.")
+        st.stop()
 
-    # Apply filters and final ranking
+    # Fetch matched candidates by IDs from the DB
+    records = db.get_candidates_by_ids([int(x) for x in ids])
+
+    # Apply filters and ranking
     results = filter_and_rank(
         job_text=job_text,
         candidates=records,
@@ -67,12 +74,19 @@ if submitted:
             with st.container(border=True):
                 st.markdown(f"### {rank}. {row['name']}")
                 st.write(f"Location: {row.get('city','')} {row.get('state','')}")
-                st.write(f"Expected pay: ${row.get('pay_min',0):.0f} to ${row.get('pay_max',0):.0f} per hour")
+                st.write(f"Expected pay: ${row.get('pay_min',0):.0f} – ${row.get('pay_max',0):.0f}/hr")
                 avail = json.loads(row["availability"]) if row.get("availability") else {"days": [], "times": []}
-                st.write(f"Availability: days {', '.join(avail.get('days', [])) or 'n/a'} | times {', '.join(avail.get('times', [])) or 'n/a'}")
+                st.write(
+                    f"Availability: days {', '.join(avail.get('days', [])) or 'n/a'} "
+                    f"| times {', '.join(avail.get('times', [])) or 'n/a'}"
+                )
                 if row.get("resume_excerpt"):
                     with st.expander("Resume preview"):
                         st.write(row["resume_excerpt"])
                 if row.get("resume_path"):
-                    st.download_button("Download resume PDF", data=open(row["resume_path"], "rb").read(),
-                                       file_name=row["resume_path"].split("/")[-1])
+                    with open(row["resume_path"], "rb") as f:
+                        st.download_button(
+                            "Download resume PDF",
+                            data=f.read(),
+                            file_name=row["resume_path"].split("/")[-1]
+                        )
