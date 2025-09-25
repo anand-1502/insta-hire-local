@@ -22,7 +22,7 @@ Everything runs locally with SQLite + ChromaDB, so it’s lightweight and easy t
 - Matches are ranked by semantic similarity + pay proximity
 - Preview resume snippets and download PDFs
 
-<img src="pic2.png" alt="Employer Search" width="700">
+<img src="pic2,jpg" alt="Employer Search" width="700">
 
 ---
 
@@ -84,5 +84,6 @@ Embeddings are stored in /data/chroma.
 The database is /data/app.db.
 
 You can reset everything by deleting data/ and re-running uploads.
+
 
 
